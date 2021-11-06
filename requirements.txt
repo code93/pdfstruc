@@ -1,7 +1,7 @@
 pdf2image
 PyPDF3
 spacy
-en_core_web_sm
 pdfminer3
 sklearn
 pandas
+regex
