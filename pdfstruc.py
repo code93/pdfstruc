@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[37]:
 
 
 import os
@@ -19,10 +19,11 @@ from heapq import nlargest
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.decomposition import LatentDirichletAllocation
 import pandas as pd
+import regex as re
 nlp = spacy.load("en_core_web_sm")
 
 
-# In[7]:
+# In[28]:
 
 
 pathRel = "./"
@@ -38,7 +39,7 @@ for i in range(0,len(contents)):
             output_folder_paths.append(pathRel+str(contents[i][:-4]))
 
 
-# In[8]:
+# In[29]:
 
 
 from pdfminer3.pdfinterp import PDFResourceManager, PDFPageInterpreter
@@ -71,7 +72,7 @@ def convert_pdf_to_txt(path):
     return text
 
 
-# In[3]:
+# In[30]:
 
 
 # pdf_file_paths = []
@@ -83,7 +84,7 @@ def convert_pdf_to_txt(path):
 # len(pdfdocs)
 
 
-# In[22]:
+# In[31]:
 
 
 articles = []
@@ -158,7 +159,7 @@ for j in range(0,len(pdfdocs)):
                     i = i + 1
 
 
-# In[ ]:
+# In[32]:
 
 
 #         inputpdf = PdfFileReader(open(str(pdfdocs[j]),'rb'))
@@ -173,7 +174,7 @@ for j in range(0,len(pdfdocs)):
 #             text = listToString(doc)
 
 
-# In[5]:
+# In[33]:
 
 
 #npr['Topic']= 8
@@ -182,6 +183,7 @@ for j in range(0,len(pdfdocs)):
 # npr = pd.DataFrame()
 # npr['Articles'] = articles
 # npr['Topic'] = topic_results.argmax(axis=1)
+
 if os.path.isdir("Topic_1") is False:
     os.mkdir("Topic_1")
 if os.path.isdir("Topic_2") is False:
@@ -196,12 +198,12 @@ if os.path.isdir("Topic_6") is False:
     os.mkdir("Topic_6")
 if os.path.isdir("Topic_7") is False:
     os.mkdir("Topic_7")
-if os.path.isdir("Topic_8") is False:
-    os.mkdir("Topic_8")
+if os.path.isdir("SSRN") is False:
+    os.mkdir("SSRN")
 # os.mkdir(pathRel+str(pdfdocs[0][:-4]))
 
 
-# In[6]:
+# In[34]:
 
 
 try:
@@ -233,11 +235,30 @@ except:
 # pages = convert_from_path('AC010M00.02 EDs and Panel Layouts-R00.pdf')
 
 
-# In[25]:
+# In[35]:
 
 
 # inputpdf = PdfFileReader(open(str(pdfdocs[0]),'rb'))
 # maxPages = inputpdf.numPages
+
+
+# In[38]:
+
+
+try:
+    for l in range(0,len(pdfdocs)):
+        if pdfdocs[l][0:4]=="SSRN":
+            doc_name = str(pdfdocs[l])
+            text = convert_pdf_to_txt(str(pdfdocs[l]))
+            topic = re.split("Abstract",re.split("Introduction",text)[0])[0].replace("\n\n"," ")
+            abstract = re.split("Abstract",re.split("Introduction",text)[0])[1].replace("\n\n"," ").replace("\n"," ")
+            if os.path.isdir("SSRN/"+str(topic)) is False:
+                os.mkdir("SSRN/"+str(topic))
+            output = open("SSRN/"+str(topic)+"/"+str(doc_name)+".txt","w")
+            output.write(abstract)
+            output.close()
+except:
+    pass
 
 
 # In[26]:
