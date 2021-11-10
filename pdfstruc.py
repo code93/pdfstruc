@@ -250,13 +250,19 @@ try:
         if pdfdocs[l][0:4]=="SSRN":
             doc_name = str(pdfdocs[l])
             text = convert_pdf_to_txt(str(pdfdocs[l]))
-            topic = re.split("Abstract",re.split("Introduction",text)[0])[0].replace("\n\n"," ")
-            abstract = re.split("Abstract",re.split("Introduction",text)[0])[1].replace("\n\n"," ").replace("\n"," ")
+            topic = re.split(",",re.split("\n",re.split("Abstract",re.split("Introduction",text)[0])[0].replace("\n\n"," "))[0])[0]
+            if len(topic) > 100:
+                topic = re.split(",",re.split("\n",re.split("Abstract",re.split("Introduction",text)[0])[0].replace("\n\n"," "))[0])[0][0:100]
+            try:
+                abstract = re.split("Abstract",re.split("Introduction",text)[0])[1].replace("\n\n"," ").replace("\n"," ")
+            except:
+                abstract = ""
             if os.path.isdir("SSRN/"+str(topic)) is False:
                 os.mkdir("SSRN/"+str(topic))
             output = open("SSRN/"+str(topic)+"/"+str(doc_name)+".txt","w")
             output.write(abstract)
             output.close()
+            shutil.copy(pdfdocs[l], "SSRN/"+str(topic)+"/")
 except:
     pass
 
