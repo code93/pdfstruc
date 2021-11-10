@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[154]:
+# In[37]:
 
 
 import os
@@ -23,7 +23,7 @@ import regex as re
 nlp = spacy.load("en_core_web_sm")
 
 
-# In[155]:
+# In[28]:
 
 
 pathRel = "./"
@@ -39,7 +39,7 @@ for i in range(0,len(contents)):
             output_folder_paths.append(pathRel+str(contents[i][:-4]))
 
 
-# In[156]:
+# In[29]:
 
 
 from pdfminer3.pdfinterp import PDFResourceManager, PDFPageInterpreter
@@ -72,7 +72,7 @@ def convert_pdf_to_txt(path):
     return text
 
 
-# In[157]:
+# In[30]:
 
 
 # pdf_file_paths = []
@@ -84,7 +84,7 @@ def convert_pdf_to_txt(path):
 # len(pdfdocs)
 
 
-# In[158]:
+# In[31]:
 
 
 articles = []
@@ -159,7 +159,7 @@ for j in range(0,len(pdfdocs)):
                     i = i + 1
 
 
-# In[159]:
+# In[32]:
 
 
 #         inputpdf = PdfFileReader(open(str(pdfdocs[j]),'rb'))
@@ -174,7 +174,7 @@ for j in range(0,len(pdfdocs)):
 #             text = listToString(doc)
 
 
-# In[160]:
+# In[33]:
 
 
 #npr['Topic']= 8
@@ -203,7 +203,7 @@ if os.path.isdir("SSRN") is False:
 # os.mkdir(pathRel+str(pdfdocs[0][:-4]))
 
 
-# In[161]:
+# In[34]:
 
 
 try:
@@ -235,14 +235,14 @@ except:
 # pages = convert_from_path('AC010M00.02 EDs and Panel Layouts-R00.pdf')
 
 
-# In[162]:
+# In[35]:
 
 
 # inputpdf = PdfFileReader(open(str(pdfdocs[0]),'rb'))
 # maxPages = inputpdf.numPages
 
 
-# In[163]:
+# In[38]:
 
 
 try:
@@ -267,13 +267,13 @@ except:
     pass
 
 
-# In[164]:
+# In[26]:
 
 
 # print(maxPages)
 
 
-# In[165]:
+# In[32]:
 
 
 # i = 1
@@ -292,40 +292,13 @@ except:
 
 
 
-# In[166]:
+# In[ ]:
 
 
-# from pdfminer3.pdfinterp import PDFResourceManager, PDFPageInterpreter
-# from pdfminer3.converter import TextConverter
-# from pdfminer3.layout import LAParams
-# from pdfminer3.pdfpage import PDFPage
-# from io import StringIO
-
-# def convert_pdf_to_txt(path):
-#     rsrcmgr = PDFResourceManager()
-#     retstr = StringIO()
-#     codec = 'utf-8'
-#     laparams = LAParams()
-#     device = TextConverter(rsrcmgr, retstr, codec=codec, laparams=laparams)
-#     fp = open(path, 'rb')
-#     interpreter = PDFPageInterpreter(rsrcmgr, device)
-#     password = ""
-#     maxpages = 0
-#     caching = True
-#     pagenos=set()
-
-#     for page in PDFPage.get_pages(fp, pagenos, maxpages=maxpages, password=password,caching=caching, check_extractable=True):
-#         interpreter.process_page(page)
-
-#     text = retstr.getvalue()
-
-#     fp.close()
-#     device.close()
-#     retstr.close()
-#     return text
 
 
-# In[167]:
+
+# In[11]:
 
 
 # def pdf_page_to_png(src_pdf, pagenum=0, resolution=154):
@@ -354,347 +327,38 @@ except:
 #     return img 
 
 
-# In[176]:
+# In[ ]:
 
 
-try:
-    text = convert_pdf_to_txt('AC010M00.02 EDs and Panel Layouts-R00.pdf')
-    first = re.split("next page:",text.lower())
-    inputpdf = PdfFileReader(open('AC010M00.02 EDs and Panel Layouts-R00.pdf','rb'))
-    page_numbers = []
-    for m in range(1,inputpdf.numPages):
-        page_numbers.append(re.split("\n\n",re.split("page:",first[m])[1].strip())[0])
-    output = open("AC010M00.02 EDs and Panel Layouts-R00/AC010M00.02 EDs and Panel Layouts-R00.txt","w")
-    output.write(text)
-    output.close()
-    try:
-        n = 1
-        for page_number in page_numbers:
-            filename =  "AC010M00.02 EDs and Panel Layouts-R00/images/PageNo "+str(page_number)+".jpg"
-            os.rename('AC010M00.02 EDs and Panel Layouts-R00/images/PageNo '+str(n)+'.jpg',filename)
-            n=n+1
-    except:
-        pass
-except:
-    pass
 
 
-# In[169]:
+
+# In[17]:
 
 
-# text = convert_pdf_to_txt('AC010M00.02 EDs and Panel Layouts-R00.pdf')
-# first = re.split("next page:",text.lower())
-# text
 
-
-# In[170]:
-
-
-# page_numbers = []
-# for m in range(1,inputpdf.numPages):
-#     page_numbers.append(re.split("\n\n",re.split("page:",first[m])[1].strip())[0])
-
-
-# In[171]:
-
-
-# output = open("AC010M00.02 EDs and Panel Layouts-R00/AC010M00.02 EDs and Panel Layouts-R00.txt","w")
-# output.write(text)
-# output.close()
-
-
-# In[172]:
-
-
-# re.split("\n\n",re.split("page:",first[1])[1].strip())[0]
-
-
-# In[173]:
-
-
-#page_numbers
-
-
-# In[175]:
-
-
-# try:
-#     n = 1
-#     for page_number in page_numbers:
-#         filename =  "PageNo"+str(page_number)+".jpg"
-#         os.rename('AC010M00.02 EDs and Panel Layouts-R00/images/PageNo '+''+n+'.jpg',filename)
-#         n+1
-# except:
-#     pass
 
 
 # In[ ]:
 
 
-# ['1000',
-#  '1000.a',
-#  '1003',
-#  '1003.a',
-#  '1003.b',
-#  '1003.c',
-#  '1003.d',
-#  '1003.e',
-#  '1003.f',
-#  '1030',
-#  '1040',
-#  '1050',
-#  '1051',
-#  '1052',
-#  '1053',
-#  '1150',
-#  '1151',
-#  '1152',
-#  '1153',
-#  '1154',
-#  '1155',
-#  '1176',
-#  '1413',
-#  '1414',
-#  '1415',
-#  '1416',
-#  '1417',
-#  '1418',
-#  '1600',
-#  '1920',
-#  '1921',
-#  '1922',
-#  '2050',
-#  '2051',
-#  '2176',
-#  '2401',
-#  '2402',
-#  '2402.a',
-#  '2403',
-#  '2404',
-#  '2405',
-#  '2406',
-#  '2407',
-#  '2408',
-#  '2409',
-#  '2410',
-#  '2411',
-#  '2412',
-#  '2413',
-#  '2414',
-#  '2415',
-#  '2416',
-#  '2600',
-#  '2920',
-#  '2921',
-#  '2922',
-#  '3050',
-#  '3051',
-#  '3176',
-#  '3400',
-#  '3400.a',
-#  '3401',
-#  '3402',
-#  '3403',
-#  '3404',
-#  '3405',
-#  '3406',
-#  '3407',
-#  '3408',
-#  '3409',
-#  '3410',
-#  '3411',
-#  '3412',
-#  '3413',
-#  '3414',
-#  '3415',
-#  '3416',
-#  '3417',
-#  '3600',
-#  '3920',
-#  '3921',
-#  '3922',
-#  '4050',
-#  '4051',
-#  '4176',
-#  '4400',
-#  '4401',
-#  '4402',
-#  '4403',
-#  '4404',
-#  '4405',
-#  '4406',
-#  '4407',
-#  '4408',
-#  '4409',
-#  '4410',
-#  '4411',
-#  '4600',
-#  '4920',
-#  '4921',
-#  '5050',
-#  '5051',
-#  '5052',
-#  '5053',
-#  '5054',
-#  '5055',
-#  '5056',
-#  '5057',
-#  '5058',
-#  '5059',
-#  '5060',
-#  '5061',
-#  '5062',
-#  '5063',
-#  '5064',
-#  '5065',
-#  '5066',
-#  '5067',
-#  '5068',
-#  '5069',
-#  '5176',
-#  '5177',
-#  '5178',
-#  '5179',
-#  '5180',
-#  '5200',
-#  '5201',
-#  '5202',
-#  '5203',
-#  '5204',
-#  '5205',
-#  '5206',
-#  '5207',
-#  '5208',
-#  '5209',
-#  '5210',
-#  '5211',
-#  '5212',
-#  '5213',
-#  '5214',
-#  '5215',
-#  '5216',
-#  '5217',
-#  '5218',
-#  '5219',
-#  '5220',
-#  '5221',
-#  '5222',
-#  '5223',
-#  '5224',
-#  '5225',
-#  '5226',
-#  '5227',
-#  '5228',
-#  '5229',
-#  '5230',
-#  '5231',
-#  '5232',
-#  '5233',
-#  '5234',
-#  '5235',
-#  '5236',
-#  '5237',
-#  '5237.a',
-#  '5237.b',
-#  '5237.c',
-#  '5237.d',
-#  '5238',
-#  '5238.a',
-#  '5238.b',
-#  '5239',
-#  '5240',
-#  '5240.a',
-#  '5240.b',
-#  '5240.c',
-#  '5241',
-#  '5242',
-#  '5250',
-#  '5252',
-#  '5253',
-#  '5254',
-#  '5391',
-#  '5600',
-#  '8200',
-#  '8201',
-#  '8202',
-#  '8203',
-#  '8204',
-#  '8205',
-#  '8206',
-#  '8207',
-#  '8208',
-#  '8209',
-#  '8210',
-#  '8600',
-#  '8250',
-#  '8251',
-#  '8252',
-#  '8253',
-#  '8254',
-#  '8255',
-#  '8600',
-#  '9200',
-#  '9201',
-#  '9202',
-#  '9203',
-#  '9204',
-#  '9205',
-#  '9206',
-#  '9207',
-#  '9208',
-#  '9209',
-#  '9210',
-#  '9211',
-#  '9212',
-#  '9220',
-#  '9221',
-#  '9222',
-#  '9223',
-#  '9224',
-#  '9225',
-#  '9226',
-#  '9227',
-#  '9228',
-#  '9229',
-#  '9230',
-#  '9231',
-#  '9232',
-#  '9233',
-#  '9234',
-#  '9240',
-#  '9241',
-#  '9242',
-#  '9243',
-#  '9244',
-#  '9245',
-#  '9246',
-#  '9247',
-#  '9248',
-#  '9260',
-#  '9261',
-#  '9262',
-#  '9263',
-#  '9264',
-#  '9265',
-#  '9266',
-#  '9267',
-#  '9268',
-#  '9269',
-#  '9270',
-#  '9271',
-#  '9272',
-#  '9273',
-#  '9274',
-#  '9275',
-#  '9276',
-#  '9277',
-#  '9278',
-#  '9300',
-#  '9301',
-#  '9302',
-#  '9303',
-#  '9304',
-#  '9305',
-#  '9306',
-#  '9307']
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
 
