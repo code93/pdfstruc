@@ -12,6 +12,7 @@ import shutil
 from pdf2image import convert_from_path
 #!pip install PyPDF3
 from PyPDF3 import PdfFileWriter,PdfFileReader
+from decouple import config
 import spacy
 from spacy.lang.en.stop_words import STOP_WORDS
 from string import punctuation
@@ -20,6 +21,8 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.decomposition import LatentDirichletAllocation
 import pandas as pd
 import regex as re
+import cv2
+import numpy as np
 nlp = spacy.load("en_core_web_sm")
 
 
@@ -41,6 +44,30 @@ for i in range(0,len(contents)):
 
 # In[156]:
 
+if config("use_process_again")=='true':
+    for j in range(0,len(pdfdocs)):
+        if os.path.isdir(output_folder_paths[j]) is True:
+            os.rmdir(output_folder_paths[j])
+    if config("use_nlp_topic_modelling")=='true':
+        if os.path.isdir("Topic_1") is True:
+            os.rmdir("Topic_1")
+        if os.path.isdir("Topic_2") is True:
+            os.rmdir("Topic_2")
+        if os.path.isdir("Topic_3") is True:
+            os.rmdir("Topic_3")
+        if os.path.isdir("Topic_4") is True:
+            os.rmdir("Topic_4")
+        if os.path.isdir("Topic_5") is True:
+            os.rmdir("Topic_5")
+        if os.path.isdir("Topic_6") is True:
+            os.rmdir("Topic_6")
+        if os.path.isdir("Topic_7") is True:
+            os.rmdir("Topic_7")
+    if config("use_regex_for_research_paper")=='true':
+        if os.path.isdir("ResearchPapers") is True:
+            os.rmdir("ResearchPapers")
+        if os.path.isdir("SSRN") is True:
+            os.rmdir("SSRN")
 
 from pdfminer3.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer3.converter import TextConverter
@@ -94,56 +121,57 @@ for j in range(0,len(pdfdocs)):
         os.mkdir(str(output_folder_paths[j])+"/images")
         inputpdf = PdfFileReader(open(str(pdfdocs[j]),'rb'))
         try:
-            doc = []
-#             for i in range (0, inputpdf.numPages):
-#                 doc.append(inputpdf.getPage(i).extractText())
-#             def listToString(s): 
-#                 str1 = "" 
-#                 for ele in s: 
-#                     str1 += ele
-#                 return str1
-#             text = listToString(doc)
-            text = convert_pdf_to_txt(str(pdfdocs[j]))
-            articles.append(text)
-            doc = nlp(text)
-            tokens = [token.text for token in doc]
-            punctuation = punctuation + '\n'
+            if config("use_nlp")=='true':
+                doc = []
+    #             for i in range (0, inputpdf.numPages):
+    #                 doc.append(inputpdf.getPage(i).extractText())
+    #             def listToString(s): 
+    #                 str1 = "" 
+    #                 for ele in s: 
+    #                     str1 += ele
+    #                 return str1
+    #             text = listToString(doc)
+                text = convert_pdf_to_txt(str(pdfdocs[j]))
+                articles.append(text)
+                doc = nlp(text)
+                tokens = [token.text for token in doc]
+                punctuation = punctuation + '\n'
 
-            # text cleaning
+                # text cleaning
 
-            word_freq = {}
+                word_freq = {}
 
-            stop_words = list(STOP_WORDS)
+                stop_words = list(STOP_WORDS)
 
-            for word in doc:
-                if word.text.lower() not in stop_words:
-                    if word.text.lower() not in punctuation:
-                        if word.text not in word_freq.keys():
-                            word_freq[word.text] = 1
-                        else:
-                            word_freq[word.text] += 1
+                for word in doc:
+                    if word.text.lower() not in stop_words:
+                        if word.text.lower() not in punctuation:
+                            if word.text not in word_freq.keys():
+                                word_freq[word.text] = 1
+                            else:
+                                word_freq[word.text] += 1
 
-            max_freq = max(word_freq.values())
-            for word in word_freq.keys():
-                word_freq[word]= word_freq[word] / max_freq
+                max_freq = max(word_freq.values())
+                for word in word_freq.keys():
+                    word_freq[word]= word_freq[word] / max_freq
 
-            sent_tokens = [sent for sent in doc.sents]
-            sent_score = {}
-            for sent in sent_tokens:
-                for word in sent:
-                    if word.text.lower() in word_freq.keys():
-                        if sent not in sent_score.keys():
-                            sent_score[sent] = word_freq[word.text.lower()]
-                        else:
-                            sent_score[sent] += word_freq[word.text.lower()]
-                    # select 30% sentences with maximum score
-            summary = nlargest(n = round(len(sent_score)*0.30), iterable=sent_score, key=sent_score.get)
-            final_summary =  [word.text for word in summary]
-            summary = " ".join(final_summary)
-            # dealing with pdf file
-            output = open(str(output_folder_paths[j])+'/'+"summary.txt","w")
-            output.write(summary)
-            output.close()
+                sent_tokens = [sent for sent in doc.sents]
+                sent_score = {}
+                for sent in sent_tokens:
+                    for word in sent:
+                        if word.text.lower() in word_freq.keys():
+                            if sent not in sent_score.keys():
+                                sent_score[sent] = word_freq[word.text.lower()]
+                            else:
+                                sent_score[sent] += word_freq[word.text.lower()]
+                        # select 30% sentences with maximum score
+                summary = nlargest(n = round(len(sent_score)*0.30), iterable=sent_score, key=sent_score.get)
+                final_summary =  [word.text for word in summary]
+                summary = " ".join(final_summary)
+                # dealing with pdf file
+                output = open(str(output_folder_paths[j])+'/'+"summary.txt","w")
+                output.write(summary)
+                output.close()
         except:
             pass
         finally:    
@@ -156,6 +184,54 @@ for j in range(0,len(pdfdocs)):
                                                thread_count=1,userpw=None,use_cropbox=False, strict=False)
                 for image in pil_images:
                     image.save(str(output_folder_paths[j])+'/images/'+'PageNo '+str(i)+'.jpg','JPEG')
+                    if config("use_opencv")=='true':
+                        #how-to-detect-diagram-region-and-extractcrop-it-from-a-research-papers-image
+                        try:
+                            # Load image, grayscale, Otsu's threshold
+                            if os.path.isdir(str(output_folder_paths[j])+'/images/'+'PageNo '+str(i)) is False:
+                                os.mkdir(str(output_folder_paths[j])+'/images/'+'PageNo '+str(i))
+                            image = cv2.imread(str(output_folder_paths[j])+'/images/'+'PageNo '+str(i)+'.jpg')
+                            original = image.copy()
+                            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+                            thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
+
+                            # Dilate with horizontal kernel
+                            kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (20,10))
+                            dilate = cv2.dilate(thresh, kernel, iterations=2)
+
+                            # Find contours and remove non-diagram contours
+                            cnts = cv2.findContours(dilate, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                            cnts = cnts[0] if len(cnts) == 2 else cnts[1]
+                            for c in cnts:
+                                x,y,w,h = cv2.boundingRect(c)
+                                area = cv2.contourArea(c)
+                                if w/h > 2 and area > 10000:
+                                    cv2.drawContours(dilate, [c], -1, (0,0,0), -1)
+
+                            # Iterate through diagram contours and form single bounding box
+                            boxes = []
+                            cnts = cv2.findContours(dilate, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                            cnts = cnts[0] if len(cnts) == 2 else cnts[1]
+                            for c in cnts:
+                                x, y, w, h = cv2.boundingRect(c)
+                                boxes.append([x,y, x+w,y+h])
+
+                            boxes = np.asarray(boxes)
+                            x = np.min(boxes[:,0])
+                            y = np.min(boxes[:,1])
+                            w = np.max(boxes[:,2]) - x
+                            h = np.max(boxes[:,3]) - y
+
+                            # Extract ROI
+                            cv2.rectangle(image, (x,y), (x + w,y + h), (36,255,12), 3)
+                            ROI = original[y:y+h, x:x+w]
+
+                            cv2.imwrite(str(output_folder_paths[j])+'/images/'+'PageNo '+str(i)+'/'+'image.jpg', image)
+                            cv2.imwrite(str(output_folder_paths[j])+'/images/'+'PageNo '+str(i)+'/'+'thresh.jpg', thresh)
+                            cv2.imwrite(str(output_folder_paths[j])+'/images/'+'PageNo '+str(i)+'/'+'dilate.jpg', dilate)
+                            cv2.imwrite(str(output_folder_paths[j])+'/images/'+'PageNo '+str(i)+'/'+'ROI.jpg', ROI)
+                        except:
+                            pass
                     i = i + 1
 
 
@@ -183,53 +259,57 @@ for j in range(0,len(pdfdocs)):
 # npr = pd.DataFrame()
 # npr['Articles'] = articles
 # npr['Topic'] = topic_results.argmax(axis=1)
-
-if os.path.isdir("Topic_1") is False:
-    os.mkdir("Topic_1")
-if os.path.isdir("Topic_2") is False:
-    os.mkdir("Topic_2")
-if os.path.isdir("Topic_3") is False:
-    os.mkdir("Topic_3")
-if os.path.isdir("Topic_4") is False:
-    os.mkdir("Topic_4")
-if os.path.isdir("Topic_5") is False:
-    os.mkdir("Topic_5")
-if os.path.isdir("Topic_6") is False:
-    os.mkdir("Topic_6")
-if os.path.isdir("Topic_7") is False:
-    os.mkdir("Topic_7")
-if os.path.isdir("SSRN") is False:
-    os.mkdir("SSRN")
+if config("use_nlp_topic_modelling")=='true':
+    if os.path.isdir("Topic_1") is False:
+        os.mkdir("Topic_1")
+    if os.path.isdir("Topic_2") is False:
+        os.mkdir("Topic_2")
+    if os.path.isdir("Topic_3") is False:
+        os.mkdir("Topic_3")
+    if os.path.isdir("Topic_4") is False:
+        os.mkdir("Topic_4")
+    if os.path.isdir("Topic_5") is False:
+        os.mkdir("Topic_5")
+    if os.path.isdir("Topic_6") is False:
+        os.mkdir("Topic_6")
+    if os.path.isdir("Topic_7") is False:
+        os.mkdir("Topic_7")
+    if config("use_regex_for_research_paper")=='true' and config("use_for_ssrn")=='false':
+        if os.path.isdir("SSRN") is False:
+            os.mkdir("ResearchPapers")
+    if config("use_regex_for_research_paper")=='true' and config("use_for_ssrn")=='true':
+        if os.path.isdir("SSRN") is False:
+            os.mkdir("SSRN")
 # os.mkdir(pathRel+str(pdfdocs[0][:-4]))
 
 
 # In[161]:
 
+if config("use_nlp_topic_modelling")=='true':
+    try:
+        cv = CountVectorizer(max_df=0.9,min_df=2,stop_words='english')
+        dtm = cv.fit_transform(articles)
 
-try:
-    cv = CountVectorizer(max_df=0.9,min_df=2,stop_words='english')
-    dtm = cv.fit_transform(articles)
-
-    LDA = LatentDirichletAllocation(n_components=7,random_state=42)
-    LDA.fit(dtm)
-    topic_results = LDA.transform(dtm)
-    for k in range(0,len(pdfdocs)):
-        if topic_results[k].argmax()==0:
-            shutil.copy(pdfdocs[k], "Topic_1")
-        if topic_results[k].argmax()==1:
-            shutil.copy(pdfdocs[k], "Topic_2")
-        if topic_results[k].argmax()==2:
-            shutil.copy(pdfdocs[k], "Topic_3")
-        if topic_results[k].argmax()==3:
-            shutil.copy(pdfdocs[k], "Topic_4")
-        if topic_results[k].argmax()==4:
-            shutil.copy(pdfdocs[k], "Topic_5")
-        if topic_results[k].argmax()==5:
-            shutil.copy(pdfdocs[k], "Topic_6")
-        if topic_results[k].argmax()==6:
-            shutil.copy(pdfdocs[k], "Topic_7")
-except:
-    pass
+        LDA = LatentDirichletAllocation(n_components=7,random_state=42)
+        LDA.fit(dtm)
+        topic_results = LDA.transform(dtm)
+        for k in range(0,len(pdfdocs)):
+            if topic_results[k].argmax()==0:
+                shutil.copy(pdfdocs[k], "Topic_1")
+            if topic_results[k].argmax()==1:
+                shutil.copy(pdfdocs[k], "Topic_2")
+            if topic_results[k].argmax()==2:
+                shutil.copy(pdfdocs[k], "Topic_3")
+            if topic_results[k].argmax()==3:
+                shutil.copy(pdfdocs[k], "Topic_4")
+            if topic_results[k].argmax()==4:
+                shutil.copy(pdfdocs[k], "Topic_5")
+            if topic_results[k].argmax()==5:
+                shutil.copy(pdfdocs[k], "Topic_6")
+            if topic_results[k].argmax()==6:
+                shutil.copy(pdfdocs[k], "Topic_7")
+    except:
+        pass
 
 #shutil.copy(src_path, dst_path)
 # pages = convert_from_path('AC010M00.02 EDs and Panel Layouts-R00.pdf')
@@ -244,27 +324,46 @@ except:
 
 # In[163]:
 
-
-try:
-    for l in range(0,len(pdfdocs)):
-        if pdfdocs[l][0:4]=="SSRN":
-            doc_name = str(pdfdocs[l])
-            text = convert_pdf_to_txt(str(pdfdocs[l]))
-            topic = re.split(",",re.split("\n",re.split("Abstract",re.split("Introduction",text)[0])[0].replace("\n\n"," "))[0])[0]
-            if len(topic) > 100:
-                topic = re.split(",",re.split("\n",re.split("Abstract",re.split("Introduction",text)[0])[0].replace("\n\n"," "))[0])[0][0:100]
-            try:
-                abstract = re.split("Abstract",re.split("Introduction",text)[0])[1].replace("\n\n"," ").replace("\n"," ")
-            except:
-                abstract = ""
-            if os.path.isdir("SSRN/"+str(topic)) is False:
-                os.mkdir("SSRN/"+str(topic))
-            output = open("SSRN/"+str(topic)+"/"+str(doc_name)+".txt","w")
-            output.write(abstract)
-            output.close()
-            shutil.copy(pdfdocs[l], "SSRN/"+str(topic)+"/")
-except:
-    pass
+if config("use_regex_for_research_paper")=='true':
+    try:
+        if config("use_for_ssrn")=='false':
+            pdfdocs = config('pdfdocs')
+            for l in range(0,len(pdfdocs)):
+                doc_name = str(pdfdocs[l])
+                text = convert_pdf_to_txt(str(pdfdocs[l]))
+                topic = re.split(",",re.split("\n",re.split("Abstract",re.split("Introduction",text)[0])[0].replace("\n\n"," "))[0])[0]
+                if len(topic) > 100:
+                    topic = re.split(",",re.split("\n",re.split("Abstract",re.split("Introduction",text)[0])[0].replace("\n\n"," "))[0])[0][0:100]
+                try:
+                    abstract = re.split("Abstract",re.split("Introduction",text)[0])[1].replace("\n\n"," ").replace("\n"," ")
+                except:
+                    abstract = ""
+                if os.path.isdir("ResearchPapers/"+str(topic)) is False:
+                    os.mkdir("ResearchPapers/"+str(topic))
+                output = open("ResearchPapers/"+str(topic)+"/"+str(doc_name)+".txt","w")
+                output.write(abstract)
+                output.close()
+                shutil.copy(pdfdocs[l], "ResearchPapers/"+str(topic)+"/")
+        if config("use_for_ssrn")=='true':
+            for l in range(0,len(pdfdocs)):
+                if pdfdocs[l][0:4]=="SSRN":
+                    doc_name = str(pdfdocs[l])
+                    text = convert_pdf_to_txt(str(pdfdocs[l]))
+                    topic = re.split(",",re.split("\n",re.split("Abstract",re.split("Introduction",text)[0])[0].replace("\n\n"," "))[0])[0]
+                    if len(topic) > 100:
+                        topic = re.split(",",re.split("\n",re.split("Abstract",re.split("Introduction",text)[0])[0].replace("\n\n"," "))[0])[0][0:100]
+                    try:
+                        abstract = re.split("Abstract",re.split("Introduction",text)[0])[1].replace("\n\n"," ").replace("\n"," ")
+                    except:
+                        abstract = ""
+                    if os.path.isdir("SSRN/"+str(topic)) is False:
+                        os.mkdir("SSRN/"+str(topic))
+                    output = open("SSRN/"+str(topic)+"/"+str(doc_name)+".txt","w")
+                    output.write(abstract)
+                    output.close()
+                    shutil.copy(pdfdocs[l], "SSRN/"+str(topic)+"/")
+    except:
+        pass
 
 
 # In[164]:
@@ -356,27 +455,28 @@ except:
 
 # In[176]:
 
-
-try:
-    text = convert_pdf_to_txt('AC010M00.02 EDs and Panel Layouts-R00.pdf')
-    first = re.split("next page:",text.lower())
-    inputpdf = PdfFileReader(open('AC010M00.02 EDs and Panel Layouts-R00.pdf','rb'))
-    page_numbers = []
-    for m in range(1,inputpdf.numPages):
-        page_numbers.append(re.split("\n\n",re.split("page:",first[m])[1].strip())[0])
-    output = open("AC010M00.02 EDs and Panel Layouts-R00/AC010M00.02 EDs and Panel Layouts-R00.txt","w")
-    output.write(text)
-    output.close()
+if config("use_regex_for_page_no")=='true':
     try:
-        n = 1
-        for page_number in page_numbers:
-            filename =  "AC010M00.02 EDs and Panel Layouts-R00/images/PageNo "+str(page_number)+".jpg"
-            os.rename('AC010M00.02 EDs and Panel Layouts-R00/images/PageNo '+str(n)+'.jpg',filename)
-            n=n+1
+        text = convert_pdf_to_txt('AC010M00.02 EDs and Panel Layouts-R00.pdf')
+        first = re.split("next page:",text.lower())
+        inputpdf = PdfFileReader(open('AC010M00.02 EDs and Panel Layouts-R00.pdf','rb'))
+        page_numbers = []
+        for m in range(1,inputpdf.numPages):
+            page_numbers.append(re.split("\n\n",re.split("page:",first[m])[1].strip())[0])
+        output = open("AC010M00.02 EDs and Panel Layouts-R00/AC010M00.02 EDs and Panel Layouts-R00.txt","w")
+        output.write(text)
+        output.close()
+        try:
+            n = 1
+            for page_number in page_numbers:
+                filename =  "PageNo"+str(page_number)+".jpg"
+                os.rename('AC010M00.02 EDs and Panel Layouts-R00/images/PageNo '+''+n+'.jpg',filename)
+                n+1
+        except:
+            pass
     except:
         pass
-except:
-    pass
+
 
 
 # In[169]:

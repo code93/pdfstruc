@@ -7,6 +7,19 @@ pip install -r requirements.txt
 spacy download en_core_web_sm
 ```
 
+## Define Environment Variables to use the selected features only:
+## If all env var = false, it will only give pdf to images
+```bash
+export use_opencv=true
+export use_nlp=true
+export use_nlp_topic_modelling=true
+export use_regex_for_research_paper=false
+export use_regex_for_page_no=true
+export use_for_ssrn=false
+export use_process_again=false # begins the process anew if true
+```
+
+
 ## Execute Python Script for getting images named as page numbers correctly and text data of pdf 
 
 ```bash
